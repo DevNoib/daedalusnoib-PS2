@@ -32,7 +32,7 @@ PS2_DEBUG_FILES = SysPS2/Debug/DaedalusAssertPS2.o SysPS2/Debug/DBGConsolePS2.o
 PS2_UI_FILES = SysPS2/UI/AboutComponent.o SysPS2/UI/AdjustDeadzoneScreen.o SysPS2/UI/AdvancedOptionsScreen.o SysPS2/UI/CheatOptionsScreen.o SysPS2/UI/ColourPulser.o SysPS2/UI/Dialogs.o SysPS2/UI/GlobalSettingsComponent.o SysPS2/UI/MainMenuScreen.o SysPS2/UI/PauseOptionsComponent.o SysPS2/UI/PauseScreen.o SysPS2/UI/RomPreferencesScreen.o SysPS2/UI/RomSelectorComponent.o SysPS2/UI/SavestateSelectorComponent.o SysPS2/UI/SelectedRomComponent.o SysPS2/UI/SplashScreen.o SysPS2/UI/UICommand.o SysPS2/UI/UIComponent.o SysPS2/UI/UIContext.o SysPS2/UI/UIElement.o SysPS2/UI/UIScreen.o SysPS2/UI/UISetting.o 
 
 PS2_BUILD = $(PS2_MAIN_FILES) $(PS2_INPUTMANAGER_FILES) $(PS2_UTILITY_FILES) $(PS2_HLEAUDIO_FILES) $(PS2_DYNAREC_FILES) $(PS2_GRAPHICS_FILES) $(PS2_HLEGRAPHICS_FILES) $(PS2_DEBUG_FILES) $(PS2_UI_FILES)
-IRXS = iomanX_irx.o fileXio_irx.o usbhdfsd_irx.o usbd_irx.o libsd_irx.o audsrv_irx.o poweroff_irx.o ps2dev9_irx.o ps2atad_irx.o ps2hdd_irx.o ps2fs_irx.o smscdvd_irx.o
+IRXS = iomanX_irx.o fileXio_irx.o bdm_irx.o bdmfs_fatfs_irx.o usbmass_bd_irx.o usbd_irx.o libsd_irx.o audsrv_irx.o poweroff_irx.o ps2dev9_irx.o ps2atad_irx.o ps2hdd_irx.o ps2fs_irx.o smscdvd_irx.o
 
 CONFIG = Release
 #CONFIG = Dev
