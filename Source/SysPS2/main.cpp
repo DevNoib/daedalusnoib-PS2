@@ -7,6 +7,7 @@
 #define NEWLIB_PORT_AWARE
 
 #include <kernel.h>
+#include <delaythread.h>
 #include <sbv_patches.h>
 #include <loadfile.h>
 #include <iopcontrol.h>
@@ -52,8 +53,14 @@
 extern u8 iomanX_irx[];
 extern int size_iomanX_irx;
 
-extern u8 usbhdfsd_irx[];
-extern int size_usbhdfsd_irx;
+extern u8 bdm_irx[];
+extern int size_bdm_irx;
+
+extern u8 bdmfs_fatfs_irx[];
+extern int size_bdmfs_fatfs_irx;
+
+extern u8 usbmass_bd_irx[];
+extern int size_usbmass_bd_irx;
 
 extern u8 usbd_irx[];
 extern int size_usbd_irx;
@@ -184,6 +191,42 @@ void nop_delay(int count)
 }
 
 #define DEBUG
+static bool LoadUsbModule(const char *name, u8 *buffer, int size)
+{
+	int module_result = -1;
+	int module_id = SifExecModuleBuffer(buffer, size, 0, NULL, &module_result);
+	if (module_id < 0 || module_result != 0)
+	{
+		printf("Failed to load %s (id %d, result %d)\n", name, module_id, module_result);
+		return false;
+	}
+	return true;
+}
+
+static bool WaitForUsbDevice(const char *boot_path)
+{
+	const char *colon = strchr(boot_path, ':');
+	char root[16];
+	if (!colon || colon - boot_path + 2 > (int)sizeof(root))
+		return false;
+	int length = colon - boot_path + 1;
+	memcpy(root, boot_path, length);
+	root[length] = '\0';
+
+	for (int attempt = 0; attempt < 100; ++attempt)
+	{
+		int fd = fileXioDopen(root);
+		if (fd >= 0)
+		{
+			fileXioDclose(fd);
+			return true;
+		}
+		DelayThread(100000);
+	}
+	printf("Timed out waiting for USB volume %s\n", root);
+	return false;
+}
+
 static void load_hddmodules()
 {
 	// set the arguments for loading 'ps2fs'
@@ -242,12 +285,17 @@ static bool	Initialize(int argc, char* argv[])
 	fileXioInit();
 #endif
 	SifExecModuleBuffer(smscdvd_irx, size_smscdvd_irx, 0, NULL, NULL);
-	SifExecModuleBuffer(usbd_irx, size_usbd_irx, 0, NULL, NULL);
-	SifExecModuleBuffer(usbhdfsd_irx, size_usbhdfsd_irx, 0, NULL, NULL);
+	if (!LoadUsbModule("bdm", bdm_irx, size_bdm_irx) ||
+		!LoadUsbModule("bdmfs_fatfs", bdmfs_fatfs_irx, size_bdmfs_fatfs_irx) ||
+		!LoadUsbModule("usbd", usbd_irx, size_usbd_irx) ||
+		!LoadUsbModule("usbmass_bd", usbmass_bd_irx, size_usbmass_bd_irx))
+		return false;
 	SifExecModuleBuffer(libsd_irx, size_libsd_irx, 0, NULL, NULL);
 	SifExecModuleBuffer(audsrv_irx, size_audsrv_irx, 0, NULL, NULL);
 
 	nop_delay(2);
+	if (!strncmp(argv[0], "mass", 4) && !WaitForUsbDevice(argv[0]))
+		return false;
 
 	//hdd0:__sysconf:pfs:/FMCB/FMCB_configurator.elf
 	char *p, *q;
