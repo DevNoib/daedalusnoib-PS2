@@ -114,7 +114,7 @@ AudioPluginPS2::~AudioPluginPS2()
 		//audsrv_quit();
 	}
 	
-	mAudioBuffer.~CAudioBuffer();
+	//mAudioBuffer.~CAudioBuffer();
 	DeleteSema(mSemaphore);
 }
 
